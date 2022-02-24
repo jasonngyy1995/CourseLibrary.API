@@ -1,5 +1,6 @@
 ﻿using CourseLibrary.API.DbContexts;
-using CourseLibrary.API.Entities; 
+using CourseLibrary.API.Entities;
+using CourseLibrary.API.ResourceParameters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace CourseLibrary.API.Services
     {
         private readonly CourseLibraryContext _context;
 
-        public CourseLibraryRepository(CourseLibraryContext context )
+        public CourseLibraryRepository(CourseLibraryContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
@@ -121,7 +122,42 @@ namespace CourseLibrary.API.Services
         {
             return _context.Authors.ToList<Author>();
         }
-         
+
+
+        public IEnumerable<Author> GetAuthors(AuthorsResourceParameter authorsResourceParameter)
+        {
+            if (authorsResourceParameter == null)
+            {
+                throw new ArgumentNullException(nameof(authorsResourceParameter));
+            }
+
+            if (string.IsNullOrWhiteSpace(authorsResourceParameter.MainCategory) && string.IsNullOrWhiteSpace(authorsResourceParameter.SearchQuery))
+            {
+                return GetAuthors();
+            }
+
+            // enable search or filter on the collection
+            // IQueryable<T> creates an expression tree -> stores query commands NOT results
+            var collection = _context.Authors as IQueryable<Author>;
+
+            // two if condiitons combine filtering and searching in database query -> better performance
+            if (!string.IsNullOrWhiteSpace(authorsResourceParameter.MainCategory))
+            {
+                var mainCategory = authorsResourceParameter.MainCategory.Trim();
+                collection = collection.Where(a => a.MainCategory == mainCategory);
+            }
+
+            if (!string.IsNullOrWhiteSpace(authorsResourceParameter.SearchQuery))
+            {
+                var searchQuery = authorsResourceParameter.SearchQuery.Trim();
+                collection = collection.Where(a => a.MainCategory.Contains(searchQuery) || a.FirstName.Contains(searchQuery) || a.LastName.Contains(searchQuery));
+            }
+
+            // execution is deferred until the query is iterated over
+            return collection.ToList();
+            
+        }
+
         public IEnumerable<Author> GetAuthors(IEnumerable<Guid> authorIds)
         {
             if (authorIds == null)

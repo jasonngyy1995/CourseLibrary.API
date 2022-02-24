@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using CourseLibrary.API.Models;
+using CourseLibrary.API.ResourceParameters;
 using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -28,9 +29,12 @@ namespace CourseLibrary.API.Controller
 
         [HttpGet()]
         [HttpHead] // similar to GET, but doesn't return the response body
-        public ActionResult<IEnumerable<AuthorDto>> GetAuthors()
+        /* According to the rule of source parameter binding, a complex type (e.g. AuthorsResourceParameter)
+             is automatically assumed to be coming from the request body, so AuthorsResourceParameter should be bounded from the query string parameter */
+        // if [FromQuery] is omitted, 406 unsupported media type error will occur upon request
+        public ActionResult<IEnumerable<AuthorDto>> GetAuthors([FromQuery] AuthorsResourceParameter authorsResourceParameter)
         {
-            var authorsFromRepo = _courseLibraryRepository.GetAuthors();
+            var authorsFromRepo = _courseLibraryRepository.GetAuthors(authorsResourceParameter);
 
             // Map<Type expected>(source)
             return Ok(_mapper.Map<IEnumerable<AuthorDto>>(authorsFromRepo));
