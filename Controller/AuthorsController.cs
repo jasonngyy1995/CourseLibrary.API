@@ -27,6 +27,7 @@ namespace CourseLibrary.API.Controller
         }
 
         [HttpGet()]
+        [HttpHead] // similar to GET, but doesn't return the response body
         public ActionResult<IEnumerable<AuthorDto>> GetAuthors()
         {
             var authorsFromRepo = _courseLibraryRepository.GetAuthors();
@@ -37,7 +38,7 @@ namespace CourseLibrary.API.Controller
         }
 
         [HttpGet("{authorId}")]
-        public IActionResult GetAuthor(Guid authorId)
+        public ActionResult<AuthorDto> GetAuthor(Guid authorId)
         {
             var authorFromRepo = _courseLibraryRepository.GetAuthor(authorId);
 
