@@ -4,6 +4,7 @@ namespace CourseLibrary.API.Models
 {
     public class AuthorDto
     {        
+        // chosen by the server
         public Guid Id { get; set; }
 
         public string Name { get; set; }

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CourseLibrary.API.Entities;
 using CourseLibrary.API.Models;
 using CourseLibrary.API.ResourceParameters;
 using CourseLibrary.API.Services;
@@ -41,7 +42,7 @@ namespace CourseLibrary.API.Controller
 
         }
 
-        [HttpGet("{authorId}")]
+        [HttpGet("{authorId}", Name = "GetAuthor")]
         public ActionResult<AuthorDto> GetAuthor(Guid authorId)
         {
             var authorFromRepo = _courseLibraryRepository.GetAuthor(authorId);
@@ -52,6 +53,35 @@ namespace CourseLibrary.API.Controller
             }
 
             return Ok(_mapper.Map<AuthorDto>(authorFromRepo));
+        }
+
+        [HttpPost]
+        /* authorForCreationDto is a complex type
+         APIController attribute will automatically deserialize it from the request body
+         APIController attribute automatically check empty or invalid serialized data,
+         which will result in null and return 400 Bad Request */
+        public ActionResult<AuthorDto> CreateAuthor(AuthorForCreationDto author)
+        {
+            var authorEntity = _mapper.Map<Author>(author);
+            _courseLibraryRepository.AddAuthor(authorEntity);
+            _courseLibraryRepository.Save();
+
+            var authorToReturn = _mapper.Map<AuthorDto>(authorEntity);
+
+            /* route name (refer to public ActionResult<AuthorDto> GetAuthor(Guid authorId) Name property),
+               route value (new { function parameter = courseToReturn's property }, response body) */
+
+            // to get 201 Created response with the newly created author in the response body
+            return CreatedAtRoute("GetAuthor",
+                new { authorId = authorToReturn.Id},
+                authorToReturn);
+        }
+
+        [HttpOptions]
+        public IActionResult GetAuthorsOptions()
+        {
+            Response.Headers.Add("Allow", "GET, OPTION, POST");
+            return Ok();
         }
     }
 }
