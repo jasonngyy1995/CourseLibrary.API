@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json.Serialization;
 using System;
 
 namespace CourseLibrary.API
@@ -33,9 +34,16 @@ namespace CourseLibrary.API
                 setupAction.ReturnHttpNotAcceptable = true;
                 // support XML output format
 
-            }).AddXmlDataContractSerializerFormatters()
+            }) 
+            .AddNewtonsoftJson(setupAction =>
+            {
+                setupAction.SerializerSettings.ContractResolver =
+                new CamelCasePropertyNamesContractResolver();
+            })
+            .AddXmlDataContractSerializerFormatters()
             .ConfigureApiBehaviorOptions(setupAction =>
             {
+                // validate input via model binder
                 setupAction.InvalidModelStateResponseFactory = context =>
                 {
                     // create a problem details object
